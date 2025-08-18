@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Favs Gallery</title>
+  <style>
+    /* Your existing styles */
+  </style>
+</head>
+<body>
+  <h1>⭐⭐ My Favorites ⭐⭐</h1>
+
+  <div class="gallery" id="gallery"></div>
+
+  <button id="add-fav-btn">+ Add Favorite</button>
+
+  <!-- Overlay Form to Add New Favorite -->
+  <div class="overlay" id="overlay">
+    <div class="form-container">
+      <h3>Add New Favorite</h3>
+      <input type="text" id="model" placeholder="Model Name" required>
+      <input type="url" id="cover" placeholder="Cover Image URL" required>
+      <input type="url" id="photoset" placeholder="Photoset URL" required>
+      <button id="submit-btn">Add Favorite</button>
+      <button id="close-btn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const GIST_JSON_URL = "https://gist.githubusercontent.com/QwQ-Op/ae7fac1de4023cbb57f59e8fee2e0555/raw/be7b648b6d3a5de8eeaea6c3435ec9dc0eb05604/favs.json"; 
+
+    const API_URL = "https://your-vercel-app-url.vercel.app/api/updateGist"; // Update this URL with your Vercel API URL
+
+    const addFavBtn = document.getElementById('add-fav-btn');
+    const overlay = document.getElementById('overlay');
+    const closeBtn = document.getElementById('close-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const modelInput = document.getElementById('model');
+    const coverInput = document.getElementById('cover');
+    const photosetInput = document.getElementById('photoset');
+    const gallery = document.getElementById('gallery');
+
+    // Show the form
+    addFavBtn.addEventListener('click', () => {
+      overlay.style.display = 'flex';
+    });
+
+    // Close the form
+    closeBtn.addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+
+    // Load the gallery
+    async function loadGallery() {
+      try {
+        const res = await fetch(GIST_JSON_URL);
+        const data = await res.json();
+        data.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${item.cover}" alt="${item.model}">
+            <div class="info">
+              <div>${item.model}</div>
+              <a href="${item.photoset}" target="_blank">View Set</a>
+            </div>
+          `;
+          gallery.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error loading gallery:", err);
+      }
+    }
+
+    loadGallery();
+
+    // Add a new favorite
+    async function addNewFavorite(model, cover, photoset) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ model, cover, photoset })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert('New favorite added!');
+          loadGallery(); // Reload gallery with new favorite
+        } else {
+          alert(data.message || 'Error adding favorite');
+        }
+      } catch (err) {
+        console.error('Error adding favorite:', err);
+        alert('An error occurred while adding the favorite');
+      }
+    }
+
+    // Submit the new favorite
+    submitBtn.addEventListener('click', () => {
+      const model = modelInput.value.trim();
+      const cover = coverInput.value.trim();
+      const photoset = photosetInput.value.trim();
+
+      if (model && cover && photoset) {
+        addNewFavorite(model, cover, photoset);
+      } else {
+        alert('Please fill all fields');
+      }
+    });
+  </script>
+</body>
+</html>
