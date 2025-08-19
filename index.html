@@ -5,15 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Favs Gallery</title>
   <style>
-    /* Your existing styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 10px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: #222;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+    .card .info {
+      padding: 10px;
+      text-align: center;
+    }
+    .card .info a {
+      color: #4ea3ff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    /* Add styles for the form and overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .form-container {
+      background: #333;
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-container input, .form-container button {
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #444;
+    }
+    .form-container button {
+      background: #4ea3ff;
+      color: white;
+      cursor: pointer;
+    }
+    .form-container button:hover {
+      background: #388ae8;
+    }
   </style>
 </head>
 <body>
-  <h1>⭐✨ My Favorites ✨⭐</h1>
+  <h1>⭐⭐ My Favorites ⭐⭐</h1>
 
+  <!-- Gallery Container -->
   <div class="gallery" id="gallery"></div>
 
-  <button id="add-fav-btn">+ Add Favorite</button>
+  <!-- Plus Button -->
+  <button id="add-fav-btn" style="padding: 10px 20px; background: #4ea3ff; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Add Favorite</button>
 
   <!-- Overlay Form to Add New Favorite -->
   <div class="overlay" id="overlay">
@@ -28,9 +103,11 @@
   </div>
 
   <script>
-    const GIST_JSON_URL = "https://gist.githubusercontent.com/QwQ-Op/ae7fac1de4023cbb57f59e8fee2e0555/raw/7924c605788dfade315b8bf1017807bdaeb99c13/favs.json"; 
+    // Raw gist JSON (read-only for gallery)
+    const GIST_JSON_URL = "https://gist.githubusercontent.com/QwQ-Op/ae7fac1de4023cbb57f59e8fee2e0555/raw/favs.json"; 
 
-    const API_URL = "https://update-gist-maroofs-projects-43b92101.vercel.app/api/updateGist"; // Update this URL with your Vercel API URL
+    // Your deployed Vercel API endpoint
+    const API_URL = "https://update-gist-maroofs-projects-43b92101.vercel.app/api/updateGist";
 
     const addFavBtn = document.getElementById('add-fav-btn');
     const overlay = document.getElementById('overlay');
@@ -53,6 +130,7 @@
 
     // Load the gallery
     async function loadGallery() {
+      gallery.innerHTML = ""; // clear old cards
       try {
         const res = await fetch(GIST_JSON_URL);
         const data = await res.json();
@@ -80,22 +158,21 @@
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ model, cover, photoset })
         });
 
         const data = await response.json();
         if (response.ok) {
           alert('New favorite added!');
-          loadGallery(); // Reload gallery with new favorite
+          overlay.style.display = 'none';
+          loadGallery(); // reload cards
         } else {
           alert(data.message || 'Error adding favorite');
         }
       } catch (err) {
         console.error('Error adding favorite:', err);
-        alert('An error occurred while adding the favorite \n'+ err);
+        alert('An error occurred while adding the favorite');
       }
     }
 
